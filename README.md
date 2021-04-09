@@ -1,5 +1,9 @@
 # DataEngineering - BTPN 2021
 
+<br />
+
+![alt text](https://miro.medium.com/max/3150/1*Uo6IS0fXWbV6O8DCME61SQ.jpeg)
+
 | Lab <br /> # | Topic | Lab <br /> Notebook | Exercise <br /> Solutions Notebook |
 | --- | ----------- | ----- |----- |
 | 1 | Introduction to Anaconda, Python & Pandas | [Lab 1](https://colab.research.google.com/github/rezaprimasatya/TrainingBTPN/blob/main/Lab1/Lab1_CSEN1095.ipynb) <br /> [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rezaprimasatya/TrainingBTPN/blob/main/Lab1/Lab1_CSEN1095.ipynb)
