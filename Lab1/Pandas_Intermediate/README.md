@@ -1,4 +1,4 @@
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rezaprimasatya/TrainingBTPN/blob/Pandas_intermediate/colab)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/rezaprimasatya/TrainingBTPN/blob/Pandas_Intermediate/colab)
 
 ## Content
 The course has the following content:
