@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<data>
+    <customer name="gokhan" >
+        <email>gokhan@gmail.com</email>
+        <phone>555-1234</phone>
+    </customer>
+    <customer name="mike" >
+        <email>mike@gmail.com</email>
+    </customer>    
+    <customer name="john" >
+        <email>john@gmail.com</email>
+        <phone>555-4567</phone>
+    </customer>  
+    <customer name="david" >
+        <phone>555-6472</phone>
+        <address>
+            <street>Fifth Avenue</street>
+        </address>
+    </customer>      
+</data>
