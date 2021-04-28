@@ -1,0 +1,6 @@
+Join
+1. [Oracle] Tampilkan semua pegawai beserta department tempat bekerja dan managernya
+2. [Oracle] Tampilkan jumlah pegawai per Regions
+3. [Oracle] Cari rata2 gaji pegawai per department
+4. [Oracle] Tampilkan id departemen, nama departemen, dan nomor manajer departemen. Tampilkan hanya departemen yang memiliki gaji manajer dengan gaji paling tinggi diantara yang lainnya
+5. [Oracle] Tampilkan data pegawai yang bekerja di United Kingdom, gunakan 'United Kingdom' sebagai where
