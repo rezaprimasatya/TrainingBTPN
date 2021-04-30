@@ -1,0 +1,1 @@
+SELECT COUNT(*) FROM demo.major_roads_network;

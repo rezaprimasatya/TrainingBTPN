@@ -1,0 +1,1 @@
+psql -d {0} -f '/var/tmp_s3_data/2018-MRDB-minimal.sql'

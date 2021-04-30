@@ -1,0 +1,4 @@
+EXPLAIN ANALYZE 
+SELECT COUNT(*) 
+FROM demo.amzn_reviews 
+WHERE review_date BETWEEN '2012-01-01' AND '2012-10-25';

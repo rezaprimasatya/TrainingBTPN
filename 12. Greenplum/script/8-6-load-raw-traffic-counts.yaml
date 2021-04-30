@@ -1,0 +1,19 @@
+---
+VERSION: 1.0.0.1
+GPLOAD:
+   INPUT:
+    - SOURCE:
+         FILE:
+           - /var/tmp_s3_data/dft_traffic_counts_raw_counts.tar.gz
+    - FORMAT: csv
+    - HEADER: true
+    - NULL_AS: 'NULL'
+    - LOG_ERRORS: true
+    - MAX_LINE_LENGTH: 1000000
+    - ERROR_LIMIT: 50000
+   OUTPUT:
+    - TABLE: demo.dft_traffic_counts_raw
+    - MODE: insert
+   PRELOAD:
+    - TRUNCATE: true
+    - REUSE_TABLES: true

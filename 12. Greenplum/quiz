@@ -1,0 +1,45 @@
+1. Greenplum dibangung bedasarkan database?
+
+    a. Oracle
+    b. MsSQL
+    c. MySQL
+    d. PostgreSQL
+    
+    jawaban: d
+    
+    
+2. Data distribution pada table dapat di set menggunakan command
+
+    a. DISTRIBUTED BY (column)
+    b. DISTRIBUTED BY column
+    c. DISTRIBUTED column
+    d. DISTRIBUTED (column)
+    
+    jawaban: a
+    
+    
+3. Apa itu co-located joins
+
+    a. Join dalam cluster yang sama
+    b. Join dalam segment yang sama
+    c. Join dengan cluster yang berbeda
+    d. Join dengan segment yang berbeda
+    
+    jawaban: b
+    
+4. Untuk distributed join keys sebaiknya menggunakan:
+
+    a. join keys sebaiknya menggunakan tipe data yang sama
+    b. join keys sebaiknya menggunakan value data yang sama
+    c. join keys sebaiknya menggunakan nama yang sama
+    d. semua pernyataan diatas salah
+    
+    jawaban: a
+    
+5. Berikut ini adalah pernyataan kenapa data partition diperlukan, kecuali?
+
+    a. Untuk lebih efisien dalam query dataset yg besar
+    b. Untuk menghindari overhead maintenance cost pada index 
+    c. Untuk mengatasi besarnya pertambahan data yang tidak diperlukan oleh kebanyakan query
+    d. Untuk memperkecil penyimpanan data
+    
