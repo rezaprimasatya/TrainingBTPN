@@ -1,0 +1,59 @@
+You need to define the two different python versions
+
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python2.7 1
+sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.6 2
+Then you need to choose which version should be defined as default
+
+sudo update-alternatives --set python /usr/bin/python3.6
+
+if error after upgrading pip: cannot import name 'main' then type command ==>
+sudo python3 -m pip uninstall pip && sudo apt install python3-pip --reinstall
+
+Installing Jupyter with pip ==>
+python3 -m pip install --upgrade pip
+python3 -m pip install jupyter
+
+If Command 'jupyter' not found error ==>
+Edit the bash profile:
+nano ~/.bashrc
+Add this line inside ~/.bashrc:
+export PATH=$PATH:~/.local/bin
+save and then, source ~/.bashrc
+
+If JAVA not installed ==>
+sudo apt install openjdk-8-jre-headless
+
+1.    su - username                                                                             
+To go to main user
+2. wget https://downloads.lightbend.com/scala/2.12.6/scala-2.12.6.tgz
+3. tar xvf scala-2.12.6.tgz     # To unzip file 
+4. sudo mv scala-2.12.6 /usr/local/scala                                                                 
+To move scala file #to user/local/scala
+5. su – hadoopuser                                                                                          
+To go hadoop user
+6. nano ~/.bashrc                                                                                              
+Type at the end        export PATH=$PATH:/usr/local/scala/bin
+7. source ~/.bashrc                                                                                                 
+For sourcing (in hadoop user)
+8. su - username                                                                                              
+go to main user
+9. wget  https://archive.apache.org/dist/spark/spark-2.3.1/spark-2.3.1-bin-hadoop2.7.tgz
+10. tar xvf spark-2.3.1-bin-hadoop2.7.tgz                                        
+To unzip the file spark-2.3.1-bin-hadoop2.7
+11. sudo mv spark-2.3.1-bin-hadoop2.7 /usr/local/spark                                                 
+To move spark file to user/local/spark
+12. su – hadoopuser                                                                                     
+To go hadoop user
+13. nano ~/.bashrc                                                                                         
+export PATH=$PATH:/usr/local/spark/bin
+14. source ~/.bashrc                                                                                                 
+For sourcing (in hadoop user)
+15. spark-shell                                                                                                     
+To go spark from hadoopuser and prompted by scala>
+16. scala> :quit           [ or  CNTRL + D ]
+
+If pyspark and spark-shell commands not working on terminal
+we might have python error, we have to give python3 path to pyspark
+add to .bashrc
+export PYSPARK_PYTHON=python3
+and source .bashrc
