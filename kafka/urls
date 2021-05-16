@@ -1,0 +1,6 @@
+34.87.150.250:8080 - kafka web ui
+34.87.150.250:8004 - zookeeper navigator
+34.87.150.250:8081 - schema registry
+34.87.150.250:8001 - schema registry ui
+34.87.150.250:8003 - kafka connect ui
+34.87.150.250:8088 - ksqldb server
