@@ -1,0 +1,49 @@
+Hi Kirill and Jean-Pierre,
+
+I really liked the flow of this class until Lesson 30 and 31. Kirill keeps mentioning blending throughout both Lessons without actually defining it or using a short description in advance. Even the use of Amazing Mart dataset in Lesson 30 is just confusing at this point when it is not used at all to explain blending. Kirill finally shows an example of data blending in the end of Lesson 31 which I feel would be understood and appreciated much earlier if he gave a small description of what a blend is and how is it different to a join.
+
+For those lost at this point, I would recommend reading the following Tableau resources that have clear definitions and examples of blending, comparison to joins and when to choose blending vs joins. From my understanding this is still an active area with a lot of discussions online but still a concrete and tangible description would help us tremendously.
+
+https://onlinehelp.tableau.com/current/pro/desktop/en-us/multiple_connections.html
+
+https://kb.tableau.com/articles/howto/deciding-between-joining-tables-and-blending-data
+
+Here is my attempt to summarize Data blending from the resources above:
+
+1. Data blending is a method for combining data that supplements a table of data from one data source with columns of data from another data source. Data blending simulates a traditional left join. The main difference between the two is when the join is performed with respect to aggregation.
+
+2. Data blending is useful under the following conditions:
+
+a. You want to combine data from different databases that are not supported by cross-database joins.
+
+b. Data is at different levels of detail or different "granularity level" following Kirill's terminology. 
+
+3. Use data blending instead of joins under the following conditions:
+
+a. Data needs cleaning.
+
+b. Joins cause duplicate data.
+
+c. You have lots of data.
+
+4. Prerequisites for data blending:
+
+a. Primary and secondary data sources
+
+Data blending requires a primary data source and at least one secondary data source. When you designate a primary data source, it functions as the main table or main data source. Any subsequent data sources that you use on the sheet are treated as a secondary data source. Only columns from the secondary data source that have corresponding matches in the primary data source appear in the view.
+
+b. Defined relationship between the primary and secondary data sources
+
+After designating primary and secondary data sources, you must define the common dimension or dimensions between the two data sources. This common dimension is called the linking field.
+
+5. There are several Data blending limitations
+
+6. Example: Left Join on User ID and Patron ID
+
+7. Example: Data Blending on User ID and Patron ID
+
+8. Example: Data Blending on User ID and Patron ID with Measures (Column "Fines" in this case)
+
+Thank you,
+
+George
