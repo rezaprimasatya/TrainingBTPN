@@ -1,0 +1,387 @@
+﻿{
+  "paragraphs": [
+    {
+      "title": "Overview",
+      "text": "%md\n\nThis tutorial demonstrate how to use Flink do streaming processing via its streaming sql + udf. In this tutorial, we read data from kafka queue and do some simple processing (just filtering here) and then write it back to another kafka queue. We use this [docker](https://zeppelin-kafka-connect-datagen.readthedocs.io/en/latest/) to create kafka cluster and source data \n\n* Make sure you add the following ip host name mapping to your hosts file, otherwise you may not be able to connect to the kafka cluster in docker\n\n```\n127.0.0.1   broker\n```\n\nUse the following command to generate the sample data.\n\n```\ncurl -X POST http://localhost:8083/connectors \\\n-H 'Content-Type:application/json' \\\n-H 'Accept:application/json' \\\n-d @connect.source.datagen.json\n```",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:38:23+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621208303973_81185526",
+      "id": "paragraph_1579054287919_-61477360",
+      "dateCreated": "2021-05-16T23:38:23+0000",
+      "status": "READY",
+      "focus": true,
+      "$$hashKey": "object:58"
+    },
+    {
+      "title": "Configure flink kafka connector",
+      "text": "%flink.conf\n\n# You need to run this paragraph first before running any flink code.\n\nflink.execution.packages\torg.apache.flink:flink-connector-kafka_2.11:1.10.0,org.apache.flink:flink-connector-kafka-base_2.11:1.10.0,org.apache.flink:flink-json:1.10.0",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:12:46+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621208303973_1632157118",
+      "id": "paragraph_1587959422055_1513725291",
+      "dateCreated": "2021-05-16T23:38:23+0000",
+      "dateStarted": "2021-05-17T03:12:46+0000",
+      "dateFinished": "2021-05-17T03:12:47+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:59"
+    },
+    {
+      "title": "Create kafka source table",
+      "text": "%flink.ssql\n\nDROP TABLE IF EXISTS source_kafka;\n\nCREATE TABLE source_kafka (\n    status  STRING,\n    direction STRING,\n    event_ts BIGINT\n) WITH (\n  'connector.type' = 'kafka',       \n  'connector.version' = 'universal',\n  'connector.topic' = 'generated.events',\n  'connector.startup-mode' = 'earliest-offset',\n  'connector.properties.zookeeper.connect' = '34.87.129.152:2181',\n  'connector.properties.bootstrap.servers' = '34.87.129.152:9092',\n  'connector.properties.group.id' = 'testGroup',\n  'connector.startup-mode' = 'earliest-offset',\n  'format.type'='json',\n  'update-mode' = 'append'\n);",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:12:55+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 6,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621208303973_476188997",
+      "id": "paragraph_1578044987529_1240899810",
+      "dateCreated": "2021-05-16T23:38:23+0000",
+      "dateStarted": "2021-05-17T03:12:55+0000",
+      "dateFinished": "2021-05-17T03:13:44+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:60"
+    },
+    {
+      "title": "Create kafka sink table",
+      "text": "%flink.ssql\n\nDROP TABLE IF EXISTS sink_kafka;\n\nCREATE TABLE sink_kafka (\n    status  STRING,\n    direction STRING,\n    event_ts TIMESTAMP(3),\n    WATERMARK FOR event_ts AS event_ts - INTERVAL '5' SECOND\n) WITH (\n  'connector.type' = 'kafka',       \n  'connector.version' = 'universal',    \n  'connector.topic' = 'generated.events2',\n  'connector.properties.zookeeper.connect' = '34.87.129.152:2181',\n  'connector.properties.bootstrap.servers' = '34.87.129.152:9092',\n  'connector.properties.group.id' = 'testGroup',\n  'format.type'='json',\n  'update-mode' = 'append'\n)\n\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:16:30+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 6,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621208303973_1319341407",
+      "id": "paragraph_1578905686087_1273839451",
+      "dateCreated": "2021-05-16T23:38:23+0000",
+      "dateStarted": "2021-05-17T00:03:52+0000",
+      "dateFinished": "2021-05-17T00:03:52+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:61"
+    },
+    {
+      "title": "Transform the data in source table and write it to sink table",
+      "text": "%flink.ssql\n\ninsert into sink_kafka select status, direction, cast(event_ts/1000000000 as timestamp(3)) from source_kafka where status <> 'foo'\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T00:03:54+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "editorHide": false,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "FLINK JOB",
+          "tooltip": "View in Flink web UI",
+          "group": "flink",
+          "values": [
+            {
+              "jobUrl": "http://localhost:8081#/job/7345e9524409d3975a33ff7e070fa116",
+              "$$hashKey": "object:204"
+            }
+          ],
+          "interpreterSettingId": "flink"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621208303973_1560770652",
+      "id": "paragraph_1578905715189_33634195",
+      "dateCreated": "2021-05-16T23:38:23+0000",
+      "dateStarted": "2021-05-17T00:03:54+0000",
+      "dateFinished": "2021-05-17T00:04:09+0000",
+      "status": "ABORT",
+      "$$hashKey": "object:62"
+    },
+    {
+      "title": "Preview sink table result",
+      "text": "%flink.ssql(type=update)\n\nselect * from source_kafka order by event_ts desc limit 10;",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:14:11+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "type": "update",
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {
+                    "columns": [
+                      {
+                        "name": "status0",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "direction1",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {
+                          "priority": 0,
+                          "direction": "asc"
+                        },
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      },
+                      {
+                        "name": "event_ts2",
+                        "visible": true,
+                        "width": "*",
+                        "sort": {},
+                        "filters": [
+                          {}
+                        ],
+                        "pinned": ""
+                      }
+                    ],
+                    "scrollFocus": {},
+                    "selection": [],
+                    "grouping": {
+                      "grouping": [],
+                      "aggregations": [],
+                      "rowExpandedStates": {}
+                    },
+                    "treeView": {},
+                    "pagination": {
+                      "paginationCurrentPage": 1,
+                      "paginationPageSize": 250
+                    }
+                  },
+                  "tableColumnTypeState": {
+                    "names": {
+                      "status": "string",
+                      "direction": "string",
+                      "event_ts": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "FLINK JOB",
+          "tooltip": "View in Flink web UI",
+          "group": "flink",
+          "values": [
+            {
+              "jobUrl": "http://localhost:8081#/job/d4f5d022267c768d882486c0b32b465c",
+              "$$hashKey": "object:219"
+            }
+          ],
+          "interpreterSettingId": "flink"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621208303973_723264360",
+      "id": "paragraph_1579058345516_-1005807622",
+      "dateCreated": "2021-05-16T23:38:23+0000",
+      "dateStarted": "2021-05-17T03:14:11+0000",
+      "dateFinished": "2021-05-17T03:15:16+0000",
+      "status": "ABORT",
+      "$$hashKey": "object:63"
+    },
+    {
+      "text": "%flink.ssql\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:38:23+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621208303973_1980457983",
+      "id": "paragraph_1579058056677_-1981512536",
+      "dateCreated": "2021-05-16T23:38:23+0000",
+      "status": "READY",
+      "$$hashKey": "object:64"
+    }
+  ],
+  "name": "4. Streaming ETL",
+  "id": "2G8SZKATN",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {
+    "flink-shared_process": [
+      {
+        "name": "duration",
+        "object": "12 seconds",
+        "noteId": "2G8SZKATN",
+        "paragraphId": "paragraph_1578905715189_33634195"
+      }
+    ]
+  },
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/4. Streaming ETL"
+}

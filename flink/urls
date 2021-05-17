@@ -1,0 +1,7 @@
+34.87.129.152:8080  zeppelin
+34.87.129.152:8081  flink web ui
+34.87.129.152:9091  flink web ui zeppelin
+34.87.129.152:9092  kafka
+34.87.129.152:2181  zookeepeer
+34.87.129.152:8000  topic ui
+34.87.129.152:8001  connect ui
