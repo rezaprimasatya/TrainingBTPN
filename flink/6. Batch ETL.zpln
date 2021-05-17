@@ -1,0 +1,626 @@
+﻿{
+  "paragraphs": [
+    {
+      "title": "Overview",
+      "text": "%md\n\nThis tutorial demonstrates how to use Flink do batch ETL via its batch sql + udf (scala, python & hive). Here's what we do in this tutorial\n\n* Download [bank](https://archive.ics.uci.edu/ml/datasets/bank+marketing) data via shell interpreter to local\n* Process the raw data via flink batch sql & scala udf which parse and clean the raw data\n* Write the structured and cleaned data to another flink table via sql\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553058_794321929",
+      "id": "paragraph_1579052523153_721650872",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "focus": true,
+      "$$hashKey": "object:58"
+    },
+    {
+      "title": "Download bank data",
+      "text": "%sh\n\ncd /tmp\nrm -rf bank*\nwget https://archive.ics.uci.edu/ml/machine-learning-databases/00222/bank.zip\nunzip bank.zip\n# upload data to hdfs if you want to run it in yarn mode\n# hadoop fs -put /tmp/bank.csv /tmp/bank.csv\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sh",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sh",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553058_132646020",
+      "id": "paragraph_1578045094400_1030344935",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:59"
+    },
+    {
+      "title": "Raw Data Preview",
+      "text": "%sh\n\nhead -n 10 /tmp/bank.csv",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sh",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sh",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553058_644852695",
+      "id": "paragraph_1579053112778_2010129053",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:60"
+    },
+    {
+      "title": "Define source table which represents the raw data",
+      "text": "%flink.bsql\n\nDROP TABLE IF EXISTS bank_raw;\nCREATE TABLE bank_raw (\n   content STRING\n) WITH (\n'format.field-delimiter'='\\n',\n'connector.type'='filesystem',\n'format.derive-schema'='true',\n'connector.path'='/tmp/bank.csv',\n'format.type'='csv'\n);",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 6,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553058_1380747994",
+      "id": "paragraph_1578044954921_-1188487356",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:61"
+    },
+    {
+      "title": "Define sink table which represents the cleaned data",
+      "text": "%flink.bsql\n\nDROP TABLE IF EXISTS bank;\nCREATE TABLE bank (\n    age int, \n    job string,\n    marital string,\n    education string,\n    `default` string,\n    balance string,\n    housing string,\n    loan string,\n    contact string, \n    `day` string,\n    `month` string,\n    duration int,\n    campaign int,\n    pdays int,\n    previous int,\n    poutcome string,\n    y string\n) WITH (\n'format.field-delimiter'=',',\n'connector.type'='filesystem',\n'format.derive-schema'='true',\n'connector.path'='/tmp/bank_cleaned',\n'format.type'='csv'\n);",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 6,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553058_702377126",
+      "id": "paragraph_1578045204379_-1427374232",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:62"
+    },
+    {
+      "title": "Show tables",
+      "text": "%flink.bsql\n\nshow tables",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "table": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553058_1419122071",
+      "id": "paragraph_1587958743728_1444404682",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:63"
+    },
+    {
+      "title": "Define UDTF ParseFunction to parse the raw data",
+      "text": "%flink\n\nimport org.apache.flink.api.java.typeutils.RowTypeInfo\nimport org.apache.flink.api.common.typeinfo.Types\nimport org.apache.flink.api.java.typeutils._\nimport org.apache.flink.api.scala.typeutils._\nimport org.apache.flink.api.scala._\n\nclass Person(val age:Int, val job: String, val marital: String, val education: String, val default: String, val balance: String, val housing: String, val loan: String, val contact: String, val day: String, val month: String, val duration: Int, val campaign: Int, val pdays: Int, val previous: Int, val poutcome: String, val y: String)\n\nclass ParseFunction extends TableFunction[Row] {\n  def eval(line: String) {\n    val tokens = line.split(\";\")\n    // parse the line\n    if (!line.startsWith(\"\\\"age\\\"\")) {\n      collect(Row.of(new Integer(tokens(0).toInt), normalize(tokens(1)), normalize(tokens(2)), normalize(tokens(3)), normalize(tokens(4)), normalize(tokens(5)), normalize(tokens(6)), normalize(tokens(7)), normalize(tokens(8)), normalize(tokens(9)), normalize(tokens(10)), new Integer(tokens(11).toInt),  new Integer(tokens(12).toInt),  \n           new Integer(tokens(13).toInt), new Integer(tokens(14).toInt),  normalize(tokens(15)), normalize(tokens(16))))\n    }\n  }\n  \n  override def getResultType() = {\n    val cls = classOf[Person]\n    Types.ROW(Types.INT, Types.STRING, Types.STRING, Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.STRING,Types.STRING,\n    Types.INT,  Types.INT, Types.INT, Types.INT, Types.STRING, Types.STRING)\n  }\n\n  // remove the quote\n  private def normalize(token: String) = {\n      if (token.startsWith(\"\\\"\")) {\n          token.substring(1, token.length - 1)\n      } else {\n          token\n      }\n  }\n}\n\nbtenv.registerFunction(\"parse\", new ParseFunction())",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553058_1083275008",
+      "id": "paragraph_1578888628353_1621411444",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:64"
+    },
+    {
+      "title": "Clean data",
+      "text": "%sh\n\nrm -rf /tmp/bank_cleaned\n#hadoop fs -rmr /tmp/bank_cleaned",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sh",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sh",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553059_2118421234",
+      "id": "paragraph_1579061020460_-113987164",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:65"
+    },
+    {
+      "title": "Parse the data and write it into sink table",
+      "text": "%flink.bsql\n\ninsert into bank select T.* from bank_raw, LATERAL TABLE(parse(content)) as T(age, job,  marital, education, `default`, balance, housing, loan, contact, `day`, `month`, duration, campaign, pdays,  previous,  poutcome, y) ",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "runOnSelectionChange": true,
+        "title": true,
+        "checkEmpty": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553059_745308775",
+      "id": "paragraph_1578669828368_-1923137601",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:66"
+    },
+    {
+      "title": "Preview output data",
+      "text": "%flink.bsql\n\nselect * from bank limit 10\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "title": true,
+        "runOnSelectionChange": true,
+        "checkEmpty": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "age": "string",
+                      "job": "string",
+                      "marital": "string",
+                      "education": "string",
+                      "default": "string",
+                      "balance": "string",
+                      "housing": "string",
+                      "loan": "string",
+                      "contact": "string",
+                      "day": "string",
+                      "month": "string",
+                      "duration": "string",
+                      "campaign": "string",
+                      "pdays": "string",
+                      "previous": "string",
+                      "poutcome": "string",
+                      "y": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553059_1167024604",
+      "id": "paragraph_1578068480238_-1678045273",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:67"
+    },
+    {
+      "title": "Display table via z.show",
+      "text": "%flink\n\nval table = btenv.sqlQuery(\"select * from bank limit 10\")\nz.show(table)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "title": true,
+        "results": {
+          "1": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "age": "string",
+                      "job": "string",
+                      "marital": "string",
+                      "education": "string",
+                      "default": "string",
+                      "balance": "string",
+                      "housing": "string",
+                      "loan": "string",
+                      "contact": "string",
+                      "day": "string",
+                      "month": "string",
+                      "duration": "string",
+                      "campaign": "string",
+                      "pdays": "string",
+                      "previous": "string",
+                      "poutcome": "string",
+                      "y": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553059_1638328286",
+      "id": "paragraph_1579061037737_-1577558456",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:68"
+    },
+    {
+      "title": "Display table via z.show in PyFlink",
+      "text": "%flink.pyflink\n\ntable = bt_env.sql_query(\"select * from bank limit 10\")\nz.show(table)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "age": "string",
+                      "job": "string",
+                      "marital": "string",
+                      "education": "string",
+                      "default": "string",
+                      "balance": "string",
+                      "housing": "string",
+                      "loan": "string",
+                      "contact": "string",
+                      "day": "string",
+                      "month": "string",
+                      "duration": "string",
+                      "campaign": "string",
+                      "pdays": "string",
+                      "previous": "string",
+                      "poutcome": "string",
+                      "y": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553059_321203022",
+      "id": "paragraph_1588690392097_1159956807",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:69"
+    },
+    {
+      "text": "%flink.pyflink\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:19:13+0000",
+      "progress": 0,
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221553059_273612342",
+      "id": "paragraph_1588693027989_1331448600",
+      "dateCreated": "2021-05-17T03:19:13+0000",
+      "status": "READY",
+      "$$hashKey": "object:70"
+    }
+  ],
+  "name": "6. Batch ETL",
+  "id": "2G644KG82",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/6. Batch ETL"
+}

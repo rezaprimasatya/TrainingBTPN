@@ -1,0 +1,324 @@
+﻿{
+  "paragraphs": [
+    {
+      "text": "%md\n\n# Introduction\n\nThis note is to demonstrate how to do machine learning in flink. Here we use [Alink](https://github.com/alibaba/Alink/). \nWe use logics regression to do classification task. We use the same data as other tutorials [bank](https://archive.ics.uci.edu/ml/datasets/bank+marketing).\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:20:02+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221602130_1537681558",
+      "id": "paragraph_1588147625869_1181490991",
+      "dateCreated": "2021-05-17T03:20:02+0000",
+      "status": "READY",
+      "focus": true,
+      "$$hashKey": "object:58"
+    },
+    {
+      "text": "%flink.pyflink\n\nimport pyflink\nfrom pyflink.dataset import ExecutionEnvironment\nfrom pyflink.datastream import StreamExecutionEnvironment\nfrom pyalink.alink.env import useCustomEnv\nmlenv = useCustomEnv(gateway,\n                     b_env,bt_env_2, s_env, st_env_2)\nfrom pyalink.alink import *\n\nt = bt_env_2.from_elements([(1, 2), (2, 5), (3, 1)], ['a', 'b'])\nsource = TableSourceBatchOp(t)\nsource.print()",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:20:02+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        },
+        "editorMode": "ace/mode/python",
+        "colWidth": 6,
+        "editorHide": false,
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221602130_1382681126",
+      "id": "20200309-234752_541772059",
+      "dateCreated": "2021-05-17T03:20:02+0000",
+      "status": "READY",
+      "$$hashKey": "object:59"
+    },
+    {
+      "text": "%flink.pyflink\n\n\ntest_data_path = \"/tmp/bank.csv\"\nfull_data_path = \"/tmp/bank-full.csv\"\nschema_str = \"age int, job string, marital string, education string, default string, balance string, housing string, loan string, contact string, day string, month string, duration int, campaign int, pdays int, previous int, poutcome string, y string\"\n\ntest_data = CsvSourceBatchOp() \\\n    .setFilePath(test_data_path) \\\n    .setSchemaStr(schema_str) \\\n    .setIgnoreFirstLine(True) \\\n    .setFieldDelimiter(\";\")\n    \nfull_data = CsvSourceBatchOp() \\\n    .setFilePath(full_data_path) \\\n    .setSchemaStr(schema_str) \\\n    .setIgnoreFirstLine(True) \\\n    .setFieldDelimiter(\";\")\n    \ntrain_set = UnionAllBatchOp().linkFrom(\n  full_data.filter(\"y='yes'\"),\n  full_data.filter(\"y='no'\").sample(0.25)\n  \n)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:20:02+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        },
+        "editorMode": "ace/mode/python",
+        "colWidth": 6,
+        "editorHide": false,
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221602130_1996833902",
+      "id": "20200309-234752_30368548",
+      "dateCreated": "2021-05-17T03:20:02+0000",
+      "status": "READY",
+      "$$hashKey": "object:60"
+    },
+    {
+      "text": "%flink.pyflink\n\n\ncategoricalColNames = [\"job\", \"marital\", \"education\", \"default\",\n                       \"balance\", \"housing\", \"loan\", \"contact\", \"poutcome\" ]\nnumerialColNames = [\"age\", \"duration\", \"campaign\", \"pdays\",\n                    \"previous\"]\nlabelColName = \"y\"\n\nonehot = OneHotEncoder().setSelectedCols(categoricalColNames) \\\n        .setOutputCols([\"output\"])\nassembler = VectorAssembler().setSelectedCols([\"output\"] + numerialColNames) \\\n        .setOutputCol(\"vec\")\npipeline = Pipeline().add(onehot).add(assembler)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:20:02+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        },
+        "editorMode": "ace/mode/python",
+        "colWidth": 6,
+        "editorHide": false,
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221602130_230251894",
+      "id": "20200309-234752_1624274051",
+      "dateCreated": "2021-05-17T03:20:02+0000",
+      "status": "READY",
+      "$$hashKey": "object:61"
+    },
+    {
+      "text": "%flink.pyflink\n\n\nlogistic = LogisticRegression().setVectorCol(\"vec\").setLabelCol(labelColName) \\\n        .setPredictionCol(\"pred\").setPredictionDetailCol(\"detail\")\nmodel = pipeline.add(logistic).fit(train_set)\n\npredict = model.transform(test_data)\n\nmetrics = EvalBinaryClassBatchOp().setLabelCol(labelColName) \\\n        .setPredictionDetailCol(\"detail\").linkFrom(predict).collectMetrics()\n        \n        \n        ",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:20:02+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        },
+        "editorMode": "ace/mode/python",
+        "colWidth": 6,
+        "editorHide": false,
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221602130_1771324181",
+      "id": "20200309-234752_452787710",
+      "dateCreated": "2021-05-17T03:20:02+0000",
+      "status": "READY",
+      "$$hashKey": "object:62"
+    },
+    {
+      "text": "%flink.pyflink\n\nprint(\"AUC:\", metrics.getAuc())\nprint(\"KS:\", metrics.getKs())\nprint(\"PRC:\", metrics.getPrc())\nprint(\"Precision:\", metrics.getPrecision())\nprint(\"Recall:\", metrics.getRecall())\nprint(\"F1:\", metrics.getF1())\nprint(\"ConfusionMatrix:\", metrics.getConfusionMatrix())\nprint(\"LabelArray:\", metrics.getLabelArray())\nprint(\"LogLoss:\", metrics.getLogLoss())\nprint(\"TotalSamples:\", metrics.getTotalSamples())\nprint(\"ActualLabelProportion:\", metrics.getActualLabelProportion())\nprint(\"ActualLabelFrequency:\", metrics.getActualLabelFrequency())\nprint(\"Accuracy:\", metrics.getAccuracy())\nprint(\"Kappa:\", metrics.getKappa())",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:20:02+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        },
+        "editorMode": "ace/mode/python",
+        "colWidth": 6,
+        "editorHide": false,
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221602130_1988358290",
+      "id": "20200309-234752_912989550",
+      "dateCreated": "2021-05-17T03:20:02+0000",
+      "status": "READY",
+      "$$hashKey": "object:63"
+    },
+    {
+      "text": "%flink.pyflink\n\ndf = predict.filter(\"y<>pred\").firstN(300).collectToDataframe()\n\nz.show(df)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:20:02+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        },
+        "editorMode": "ace/mode/python",
+        "colWidth": 12,
+        "editorHide": false,
+        "fontSize": 9,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "age": "string",
+                      "job": "string",
+                      "marital": "string",
+                      "education": "string",
+                      "default": "string",
+                      "balance": "string",
+                      "housing": "string",
+                      "loan": "string",
+                      "contact": "string",
+                      "day": "string",
+                      "month": "string",
+                      "duration": "string",
+                      "campaign": "string",
+                      "pdays": "string",
+                      "previous": "string",
+                      "poutcome": "string",
+                      "y": "string",
+                      "output": "string",
+                      "vec": "string",
+                      "pred": "string",
+                      "detail": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221602130_2022821603",
+      "id": "20200309-234752_1664292334",
+      "dateCreated": "2021-05-17T03:20:02+0000",
+      "status": "READY",
+      "$$hashKey": "object:64"
+    },
+    {
+      "text": "%flink.pyflink\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:20:02+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionSupport": true,
+          "completionKey": "TAB"
+        },
+        "editorMode": "ace/mode/python",
+        "colWidth": 12,
+        "editorHide": false,
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621221602130_2107306939",
+      "id": "20200309-234752_517801851",
+      "dateCreated": "2021-05-17T03:20:02+0000",
+      "status": "READY",
+      "$$hashKey": "object:65"
+    }
+  ],
+  "name": "8. Logistic Regression (Alink)",
+  "id": "2G7MN9M6M",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/8. Logistic Regression (Alink)"
+}

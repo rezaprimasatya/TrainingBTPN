@@ -1,0 +1,248 @@
+﻿{
+  "paragraphs": [
+    {
+      "text": "%md\n# Running Wordcount\n\n## Batch Mode",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T22:58:03+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621205817169_1534388867",
+      "id": "paragraph_1621205817169_1534388867",
+      "dateCreated": "2021-05-16T22:56:57+0000",
+      "dateStarted": "2021-05-16T22:58:03+0000",
+      "dateFinished": "2021-05-16T22:58:03+0000",
+      "status": "FINISHED",
+      "focus": true,
+      "$$hashKey": "object:58"
+    },
+    {
+      "text": "\nval text = benv.fromElements(\"In the time of chimpanzees, I was a monkey\",   // some lines of text to analyze\n\"Butane in my veins and I'm out to cut the junkie\",\n\"With the plastic eyeballs, spray paint the vegetables\",\n\"Dog food stalls with the beefcake pantyhose\",\n\"Kill the headlights and put it in neutral\",\n\"Stock car flamin' with a loser in the cruise control\",\n\"Baby's in Reno with the Vitamin D\",\n\"Got a couple of couches, sleep on the love seat\",\n\"Someone came in sayin' I'm insane to complain\",\n\"About a shotgun wedding and a stain on my shirt\",\n\"Don't believe everything that you breathe\",\n\"You get a parking violation and a maggot on your sleeve\",\n\"So shave your face with some mace in the dark\",\n\"Savin' all your food stamps and burnin' down the trailer park\",\n\"Yo, cut it\")\n\n// val counts = text.flatMap{ _.toLowerCase.split(\"\\\\W+\") }.map { (_,1) }.groupBy(0).sum(1)\n\n// counts.collect().foreach(println(_))  \nval counts = text.flatMap(line => line.toLowerCase.split(\"\\\\W+\"))\n                .map(word => (word, 1))\n                .groupBy(0)\n                .sum(1)\n                .print()",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T03:10:27+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true,
+        "tableHide": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "FLINK JOB",
+          "tooltip": "View in Flink web UI",
+          "group": "flink",
+          "values": [
+            {
+              "jobUrl": "http://localhost:8081#/job/215b3dd57dae599d6bef30190c98e90a",
+              "$$hashKey": "object:139"
+            }
+          ],
+          "interpreterSettingId": "flink"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621179668171_1525029565",
+      "id": "paragraph_1621179668171_1525029565",
+      "dateCreated": "2021-05-16T15:41:08+0000",
+      "dateStarted": "2021-05-17T03:10:27+0000",
+      "dateFinished": "2021-05-17T03:11:02+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:59"
+    },
+    {
+      "text": "%md\n\n## Streaming Mode",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T22:58:15+0000",
+      "progress": 0,
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "editorMode": "ace/mode/markdown",
+        "tableHide": false,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621179691194_1843063072",
+      "id": "paragraph_1621179691194_1843063072",
+      "dateCreated": "2021-05-16T15:41:31+0000",
+      "dateStarted": "2021-05-16T22:58:15+0000",
+      "dateFinished": "2021-05-16T22:58:15+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:60"
+    },
+    {
+      "text": "val text = senv.fromElements(\"In the time of chimpanzees, I was a monkey\",   // some lines of text to analyze\n\"Butane in my veins and I'm out to cut the junkie\",\n\"With the plastic eyeballs, spray paint the vegetables\",\n\"Dog food stalls with the beefcake pantyhose\",\n\"Kill the headlights and put it in neutral\",\n\"Stock car flamin' with a loser in the cruise control\",\n\"Baby's in Reno with the Vitamin D\",\n\"Got a couple of couches, sleep on the love seat\",\n\"Someone came in sayin' I'm insane to complain\",\n\"About a shotgun wedding and a stain on my shirt\",\n\"Don't believe everything that you breathe\",\n\"You get a parking violation and a maggot on your sleeve\",\n\"So shave your face with some mace in the dark\",\n\"Savin' all your food stamps and burnin' down the trailer park\",\n\"Yo, cut it\")\n\n// val counts = text.flatMap{ _.toLowerCase.split(\"\\\\W+\") }.map { (_,1) }.groupBy(0).sum(1)\n\n// counts.collect().foreach(println(_))  \nval counts = text.flatMap(line => line.toLowerCase.split(\"\\\\W+\"))\n                .map(word => (word, 1))\n                .keyBy(0)\n                .sum(1)\n                .print()\n                \nsenv.execute()",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:04:28+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "FLINK JOB",
+          "tooltip": "View in Flink web UI",
+          "group": "flink",
+          "values": [
+            {
+              "jobUrl": "http://localhost:8081#/job/d9ac57d723e7e2f82c17b9a78641f374",
+              "$$hashKey": "object:160"
+            }
+          ],
+          "interpreterSettingId": "flink"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621205895333_1053711085",
+      "id": "paragraph_1621205895333_1053711085",
+      "dateCreated": "2021-05-16T22:58:15+0000",
+      "dateStarted": "2021-05-16T23:04:28+0000",
+      "dateFinished": "2021-05-16T23:04:31+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:61"
+    },
+    {
+      "text": "%md\n\nThese 2 examples are written in scala. In Zeppelin you don’t need to create the entry point of flink program (ExecutionEnvironment, StreamExecutionEnvironment, BatchTableEnvironment, StreamTableEnvironment). Zeppelin will create them for users (users can use benv and senvdirectly in these 2 examples). Actually flink interperter will create a scala shell internally and create these entry point variables for you.\n\n## Execution Mode (Batch/Streaming)\n\nApache Flink’s unified approach to stream and batch processing means that a DataStream application executed over bounded input will produce the same final results regardless of the configured execution mode. It is important to note what final means here: a job executing in STREAMING mode might produce incremental updates (think upserts in a database) while a BATCH job would only produce one final result at the end.\n\nBy enabling BATCH execution, we allow Flink to apply additional optimizations that we can only do when we know that our input is bounded. For example, different join/aggregation strategies can be used, in addition to a different shuffle implementation that allows more efficient task scheduling and failure recovery behavior\n\nHere’s how you can configure the execution mode via the command line:\n```bash\n$ bin/flink run -Dexecution.runtime-mode=BATCH examples/streaming/WordCount.jar\n\n```\n\nThis example shows how you can configure the execution mode in code:\n```scala\nStreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();\nenv.setRuntimeMode(RuntimeExecutionMode.BATCH);\n```\n\n\n### StreamExecutionEnvironment, ExecutionEnvironment, StreamTableEnvironment, BatchTableEnvironment\n\nZeppelin will create 6 variables as flink scala (%flink) entry points:\n- senv (StreamExecutionEnvironment),\n- benv (ExecutionEnvironment)\n- stenv (StreamTableEnvironment for blink planner)\n- btenv (BatchTableEnvironment for blink planner)\n- stenv_2 (StreamTableEnvironment for flink planner)\n- btenv_2 (BatchTableEnvironment for flink planner)\n\nAnd will create 6 variables as pyflink (%flink.pyflink or %flink.ipyflink) entry points:\n- s_env (StreamExecutionEnvironment),\n- b_env (ExecutionEnvironment)\n- st_env (StreamTableEnvironment for blink planner)\n- bt_env (BatchTableEnvironment for blink planner)\n- st_env_2 (StreamTableEnvironment for flink planner)\n- bt_env_2 (BatchTableEnvironment for flink planner)\n\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:11:09+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621206217100_395326690",
+      "id": "paragraph_1621206217100_395326690",
+      "dateCreated": "2021-05-16T23:03:37+0000",
+      "dateStarted": "2021-05-16T23:11:09+0000",
+      "dateFinished": "2021-05-16T23:11:09+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:62"
+    },
+    {
+      "user": "anonymous",
+      "progress": 0,
+      "config": {
+        "colWidth": 12,
+        "fontSize": 9,
+        "enabled": true,
+        "results": {},
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "editorMode": "ace/mode/scala"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207190972_2010749384",
+      "id": "paragraph_1621207190972_2010749384",
+      "dateCreated": "2021-05-16T23:19:50+0000",
+      "status": "READY",
+      "$$hashKey": "object:63"
+    }
+  ],
+  "name": "1. Getting Started",
+  "id": "2G8JT777G",
+  "defaultInterpreterGroup": "flink",
+  "version": "0.9.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/1. Getting Started"
+}

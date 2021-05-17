@@ -1,0 +1,663 @@
+﻿{
+  "paragraphs": [
+    {
+      "title": "Introduction",
+      "text": "%md\n\n# Introduction\n\n\nTypically there're 3 essential steps for building one flink job. And each step has its favorite tools.\n\n* Define source/sink (SQL DDL)\n* Define data flow (Table Api / SQL)\n* Implement business logic (UDF)\n\nThis tutorial demonstrates how to build one typical flinkjob  via these 3 steps and their favorite tools.\nIn this demo, we will do real time analysis of cdn access data. First we read cdn access log from kafka queue and do some processing and aggregation, then write the result to mysql database. We use this [docker](https://zeppelin-kafka-connect-datagen.readthedocs.io/en/latest/) to create kafka cluster and source data. You need to prepare mysql database by yourself. \n\n* Make sure you add the following ip host name mapping to your hosts file, otherwise you may not be able to connect to the kafka cluster in docker\n\n```\n127.0.0.1   broker\n```\n\nUse the following command to generate the sample data.\n\n```\ncurl -X POST http://localhost:8083/connectors \\\n-H 'Content-Type:application/json' \\\n-H 'Accept:application/json' \\\n-d @cdn.source.datagen.json\n```",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:29:54+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "title": false,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794806_1384601873",
+      "id": "paragraph_1587965294481_785664297",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "status": "READY",
+      "focus": true,
+      "$$hashKey": "object:58"
+    },
+    {
+      "title": "Configuration",
+      "text": "%flink.conf\n\n# This example use kafka as source and mysql as sink, so you need to specify flink kafka connector and flink jdbc connector first.\n\nflink.execution.packages\torg.apache.flink:flink-connector-kafka_2.11:1.10.0,org.apache.flink:flink-connector-kafka-base_2.11:1.10.0,org.apache.flink:flink-json:1.10.0,org.apache.flink:flink-jdbc_2.11:1.10.0,mysql:mysql-connector-java:5.1.38\n\n# Set taskmanager.memory.segment-size to be the smallest value just for this demo, otherwise you will see the result change after a long time due to the buffer in upstream vertex.\ntaskmanager.memory.segment-size 4k\n\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T00:00:43+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794807_170602904",
+      "id": "paragraph_1585734329697_1695781588",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "dateStarted": "2021-05-17T00:00:43+0000",
+      "dateFinished": "2021-05-17T00:00:43+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:59"
+    },
+    {
+      "title": "Define source table",
+      "text": "%flink.ssql\n\nDROP table if exists cdn_access_log;\n\nCREATE TABLE cdn_access_log (\n uuid VARCHAR,\n client_ip VARCHAR,\n request_time BIGINT,\n response_size BIGINT,\n uri VARCHAR,\n event_ts BIGINT\n) WITH (\n 'connector.type' = 'kafka',\n 'connector.version' = 'universal',\n 'connector.topic' = 'cdn_events',\n 'connector.properties.zookeeper.connect' = 'localhost:2181',\n 'connector.properties.bootstrap.servers' = 'localhost:9092',\n 'connector.properties.group.id' = 'testGroup',\n 'format.type' = 'json',\n 'connector.startup-mode' = 'earliest-offset',\n 'update-mode' = 'append'\n)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T00:00:44+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 6,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794807_1283520487",
+      "id": "paragraph_1585733282496_767011327",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "dateStarted": "2021-05-17T00:00:44+0000",
+      "dateFinished": "2021-05-17T00:01:29+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:60"
+    },
+    {
+      "title": "Define sink table",
+      "text": "%flink.ssql\n\nDROP table if exists cdn_access_statistic;\n\n-- Please create this mysql table first in your mysql instance. Flink won't create mysql table for you.\n\nCREATE TABLE cdn_access_statistic (\n province VARCHAR,\n access_count BIGINT,\n total_download BIGINT,\n download_speed DOUBLE\n) WITH (\n 'connector.type' = 'jdbc',\n 'connector.url' = 'jdbc:mysql://localhost:3306/flink_cdn',\n 'connector.table' = 'cdn_access_statistic',\n 'connector.username' = 'root',\n 'connector.password' = '123456',\n 'connector.write.flush.interval' = '1s'\n)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T00:01:34+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 6,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794807_1901565908",
+      "id": "paragraph_1585733896337_1928136072",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "dateStarted": "2021-05-17T00:01:34+0000",
+      "dateFinished": "2021-05-17T00:01:34+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:61"
+    },
+    {
+      "title": "PyFlink UDF",
+      "text": "%flink.ipyflink\n\nimport re\nimport json\nfrom pyflink.table import DataTypes\nfrom pyflink.table.udf import udf\nfrom urllib.parse import quote_plus\nfrom urllib.request import urlopen\n\n# This UDF is to convert ip address to country. Here we simply the logic just for demo purpose.\n\n@udf(input_types=[DataTypes.STRING()], result_type=DataTypes.STRING())\ndef ip_to_country(ip):\n\n    countries = ['USA', 'China', 'Japan', 'South Korea', 'France', 'Germany', 'Italy', 'Russia', 'Canada']\n    last_dot = ip.rfind('.')\n    country_index = int(ip[(last_dot+1) :]) % len(countries)\n    return countries[country_index]\n\n\nst_env.register_function(\"ip_to_country\", ip_to_country)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T00:01:39+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9,
+        "title": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794807_845729111",
+      "id": "paragraph_1585733368214_-94290606",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "dateStarted": "2021-05-17T00:01:39+0000",
+      "dateFinished": "2021-05-17T00:01:44+0000",
+      "status": "FINISHED",
+      "$$hashKey": "object:62"
+    },
+    {
+      "title": "Test UDF",
+      "text": "%flink.bsql\n\nselect ip_to_country('2.10.01.1')",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-17T00:01:48+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "EXPR$0": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                }
+              },
+              "commonSetting": {}
+            }
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "FLINK JOB",
+          "tooltip": "View in Flink web UI",
+          "group": "flink",
+          "values": [
+            {
+              "jobUrl": "http://localhost:8081#/job/00fe9167a90ba712395e38b8f8f427d4",
+              "$$hashKey": "object:273"
+            }
+          ],
+          "interpreterSettingId": "flink"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794807_157308488",
+      "id": "paragraph_1586844130766_-1152098073",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "dateStarted": "2021-05-17T00:01:48+0000",
+      "dateFinished": "2021-05-17T00:03:54+0000",
+      "status": "ERROR",
+      "$$hashKey": "object:63"
+    },
+    {
+      "title": "PyFlink Table Api",
+      "text": "%flink.ipyflink\n\nt = st_env.from_path(\"cdn_access_log\")\\\n   .select(\"uuid, \"\n           \"ip_to_country(client_ip) as country, \" \n           \"response_size, request_time\")\\\n  .group_by(\"country\")\\\n  .select(\n          \"country, count(uuid) as access_count, \" \n          \"sum(response_size) as total_download,  \" \n          \"sum(response_size) * 1.0 / sum(request_time) as download_speed\")\n   #.insert_into(\"cdn_access_statistic\")\n\n# z.show will display the result in zeppelin front end in table format, you can uncomment the above insert statement and the below st_env.execute in order to write the data to mysql table.    \nz.show(t, stream_type=\"update\")\n#st_env.execute(\"pyflink_cdn_access_job\")\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:37:08+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9,
+        "editorHide": false,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "table",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "country": "string",
+                      "access_count": "string",
+                      "total_download": "string",
+                      "download_speed": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "xLabelStatus": "default",
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "stacked": true
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "country",
+                  "index": 0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "access_count",
+                  "index": 1,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "savepointDir": "/tmp/flink_python",
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {
+        "jobUrl": {
+          "propertyName": "jobUrl",
+          "label": "FLINK JOB",
+          "tooltip": "View in Flink web UI",
+          "group": "flink",
+          "values": [
+            {
+              "jobUrl": "http://localhost:8081#/job/9c69bc3a701059ef5ef26d8eb281984c",
+              "$$hashKey": "object:285"
+            }
+          ],
+          "interpreterSettingId": "flink"
+        }
+      },
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794807_1746763995",
+      "id": "paragraph_1586617588031_-638632283",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "dateStarted": "2021-05-16T23:37:08+0000",
+      "dateFinished": "2021-05-16T23:37:40+0000",
+      "status": "ABORT",
+      "$$hashKey": "object:64"
+    },
+    {
+      "title": "Scala Table Api",
+      "text": "%flink\n\nval t = stenv.from(\"cdn_access_log\")\n   .select(\"uuid, ip_to_country(client_ip) as country, response_size, request_time\")\n   .groupBy(\"country\")\n   .select( \"country, count(uuid) as access_count, sum(response_size) as total_download,  sum(response_size) * 1.0 / sum(request_time) as download_speed\")\n   //.insertInto(\"cdn_access_statistic\")\n\n// z.show will display the result in zeppelin front end in table format, you can uncomment the above insert statement and the below st_env.execute in order to write the data to mysql table.\nz.show(t, streamType=\"update\")\n//stenv.execute(\"cdn_access_job\")\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:29:54+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "scala",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "parallelism": "4",
+        "maxParallelism": "10",
+        "colWidth": 12,
+        "editorMode": "ace/mode/scala",
+        "fontSize": 9,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "province": "string",
+                      "access_count": "string",
+                      "total_download": "string",
+                      "download_speed": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "country",
+                  "index": 0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "access_count",
+                  "index": 1,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "savepointDir": "/tmp/flink_scala",
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794807_494856464",
+      "id": "paragraph_1585796091843_-1858464529",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "status": "READY",
+      "$$hashKey": "object:65"
+    },
+    {
+      "title": "Flink Sql",
+      "text": "%flink.ssql\n\ninsert into cdn_access_statistic\nselect ip_to_country(client_ip) as country, \n       count(uuid) as access_count, \n       sum(response_size) as total_download ,\n       sum(response_size) * 1.0 / sum(request_time) as download_speed\nfrom cdn_access_log\n  group by ip_to_country(client_ip)\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:29:54+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "sql",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/sql",
+        "fontSize": 9,
+        "title": true,
+        "type": "update",
+        "results": {},
+        "savepointDir": "/tmp/flink_1",
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794807_1692387910",
+      "id": "paragraph_1585757391555_145331506",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "status": "READY",
+      "$$hashKey": "object:66"
+    },
+    {
+      "text": "%md\n\n# Query sink table via jdbc interpreter\n\nYou can also query the sink table (mysql) directly via jdbc interpreter. Here I will create a jdbc interpreter named `mysql` and use it to query the sink table. Regarding how to connect mysql in Zeppelin, refer this [link](http://zeppelin.apache.org/docs/0.9.0-preview1/interpreter/jdbc.html#mysql)",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:29:54+0000",
+      "progress": 0,
+      "config": {
+        "tableHide": false,
+        "editorSetting": {
+          "language": "markdown",
+          "editOnDblClick": true,
+          "completionKey": "TAB",
+          "completionSupport": false
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/markdown",
+        "fontSize": 9,
+        "editorHide": true,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794808_522447190",
+      "id": "paragraph_1587976725546_2073084823",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "status": "READY",
+      "$$hashKey": "object:67"
+    },
+    {
+      "title": "Query mysql",
+      "text": "%mysql\n\nselect * from flink_cdn.cdn_access_statistic",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:29:54+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "text",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/text",
+        "fontSize": 9,
+        "title": true,
+        "results": {
+          "0": {
+            "graph": {
+              "mode": "multiBarChart",
+              "height": 300,
+              "optionOpen": false,
+              "setting": {
+                "table": {
+                  "tableGridState": {},
+                  "tableColumnTypeState": {
+                    "names": {
+                      "province": "string",
+                      "access_count": "string",
+                      "total_download": "string",
+                      "download_speed": "string"
+                    },
+                    "updated": false
+                  },
+                  "tableOptionSpecHash": "[{\"name\":\"useFilter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable filter for columns\"},{\"name\":\"showPagination\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable pagination for better navigation\"},{\"name\":\"showAggregationFooter\",\"valueType\":\"boolean\",\"defaultValue\":false,\"widget\":\"checkbox\",\"description\":\"Enable a footer for displaying aggregated values\"}]",
+                  "tableOptionValue": {
+                    "useFilter": false,
+                    "showPagination": false,
+                    "showAggregationFooter": false
+                  },
+                  "updated": false,
+                  "initialized": false
+                },
+                "multiBarChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "stackedAreaChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                },
+                "lineChart": {
+                  "rotate": {
+                    "degree": "-45"
+                  },
+                  "xLabelStatus": "default"
+                }
+              },
+              "commonSetting": {},
+              "keys": [
+                {
+                  "name": "province",
+                  "index": 0,
+                  "aggr": "sum"
+                }
+              ],
+              "groups": [],
+              "values": [
+                {
+                  "name": "access_count",
+                  "index": 1,
+                  "aggr": "sum"
+                }
+              ]
+            },
+            "helium": {}
+          }
+        },
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794809_1724401004",
+      "id": "paragraph_1586931452339_-1281904044",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "status": "READY",
+      "$$hashKey": "object:68"
+    },
+    {
+      "text": "%flink.ipyflink\n",
+      "user": "anonymous",
+      "dateUpdated": "2021-05-16T23:29:54+0000",
+      "progress": 0,
+      "config": {
+        "editorSetting": {
+          "language": "python",
+          "editOnDblClick": false,
+          "completionKey": "TAB",
+          "completionSupport": true
+        },
+        "colWidth": 12,
+        "editorMode": "ace/mode/python",
+        "fontSize": 9,
+        "results": {},
+        "enabled": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "apps": [],
+      "runtimeInfos": {},
+      "progressUpdateIntervalMs": 500,
+      "jobName": "paragraph_1621207794809_1540568695",
+      "id": "paragraph_1587115507009_250592635",
+      "dateCreated": "2021-05-16T23:29:54+0000",
+      "status": "READY",
+      "$$hashKey": "object:69"
+    }
+  ],
+  "name": "2. Three Essential Steps for Building Flink Job",
+  "id": "2G75DEMZK",
+  "defaultInterpreterGroup": "spark",
+  "version": "0.9.0",
+  "noteParams": {},
+  "noteForms": {},
+  "angularObjects": {},
+  "config": {
+    "isZeppelinNotebookCronEnable": false,
+    "looknfeel": "default",
+    "personalizedMode": "false"
+  },
+  "info": {},
+  "path": "/2. Three Essential Steps for Building Flink Job"
+}
